@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Linkforge: short links with real analytics</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%2315123B'/><path d='M9 20l5-8 4 5 5-9' stroke='%23FF5A87' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#15123B;--paper:#EEEAFF;--sig:#FF5A87;--mint:#12A883;--sun:#FFC94A;--mute:#6B678F;--line:#DAD4F5;--deep:#2A2660;--edge:#3B3780}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 Figtree,system-ui,sans-serif}
+h1,h2,h3,.brand{font-family:'Bricolage Grotesque',Figtree,sans-serif;letter-spacing:-.02em;margin:0}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 60px}
+header{display:flex;justify-content:space-between;align-items:center;padding:22px 0}
+.brand{font-weight:800;font-size:22px;display:flex;gap:10px;align-items:center}
+.stats{color:var(--mute);font-size:14px;display:flex;gap:18px}.stats b{color:var(--ink)}
+.hero{background:var(--ink);color:#fff;border-radius:28px;padding:48px clamp(20px,5vw,56px)}
+.hero h1{font-size:clamp(36px,6.4vw,68px);line-height:.98;font-weight:800;max-width:13ch;margin-bottom:14px}
+.hero p{color:#B9B4E6;max-width:46ch;margin:0 0 28px}
+.bar{display:flex;gap:8px;background:#fff;border-radius:16px;padding:8px}
+.bar input{flex:1;border:0;font:inherit;padding:12px 14px;min-width:0;color:var(--ink);background:transparent;outline:none}
+button{font:inherit;cursor:pointer}
+.go{background:var(--sig);color:#fff;border:0;border-radius:11px;padding:0 26px;font-weight:600;min-height:48px;transition:transform .15s}
+.go:active{transform:scale(.97)}.go:disabled{opacity:.6}
+:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.chip{background:var(--deep);color:#E5E1FF;border:1px solid var(--edge);border-radius:999px;padding:6px 15px;font-size:14px}
+.chip[aria-pressed=true]{background:var(--sun);color:var(--ink);border-color:var(--sun);font-weight:600}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:14px}
+.fields[hidden]{display:none}
+.fields label{font-size:14px;color:#B9B4E6;display:grid;gap:5px}
+.fields input{background:var(--deep);border:1px solid var(--edge);color:#fff;border-radius:10px;padding:10px 12px;font:inherit}
+.hint{font-size:13px;min-height:20px;margin-top:4px}.ok{color:#5CE6BE}.bad{color:#FF8FAE}
+.result{margin-top:28px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center;border-top:1px solid var(--edge);padding-top:26px}
+.result[hidden]{display:none}
+.code{font:700 clamp(26px,5vw,52px)/1.1 ui-monospace,Menlo,Consolas,monospace;word-break:break-all}
+.code span{color:#8B86C9}
+.row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.btn{background:transparent;color:#fff;border:1px solid var(--edge);border-radius:10px;padding:8px 16px}
+.btn.solid{background:var(--mint);border-color:var(--mint);color:#04261D;font-weight:600}
+.qr{background:#fff;border-radius:16px;padding:8px;width:136px;height:136px}.qr img{width:100%;height:100%;display:block}
+.live{display:flex;align-items:center;gap:14px;margin:18px 0 6px;color:var(--mute);font-size:14px;overflow:hidden;white-space:nowrap}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--mint);flex:none;box-shadow:0 0 0 0 #12A88388;animation:p 2s infinite}
+@keyframes p{70%{box-shadow:0 0 0 9px #12A88300}100%{box-shadow:0 0 0 0 #12A88300}}
+.live span.ev{background:#fff;border-radius:999px;padding:3px 12px;color:var(--ink)}
+h2{font-size:28px;margin:34px 0 14px}
+.list{display:grid;gap:10px}
+.link{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;background:#fff;border-radius:16px;padding:16px 20px;border:1px solid transparent;text-align:left;width:100%;color:inherit}
+.link:hover{border-color:var(--sig)}
+.link .s{font:600 18px ui-monospace,Menlo,monospace}.link .u{color:var(--mute);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60vw}
+.link .n{font:800 30px 'Bricolage Grotesque';text-align:right;line-height:1}.link .n small{display:block;font:500 12px Figtree;color:var(--mute)}
+.tag{display:inline-block;background:var(--paper);border-radius:999px;padding:1px 10px;font-size:12px;margin-right:6px}
+.empty{background:#fff;border-radius:16px;padding:28px;color:var(--mute)}
+aside{position:fixed;inset:0 0 0 auto;width:min(520px,100%);background:#fff;transform:translateX(105%);transition:transform .3s;z-index:5;overflow:auto;padding:26px;box-shadow:-20px 0 60px #15123B33}
+aside.open{transform:none}
+.veil{position:fixed;inset:0;background:#15123B66;opacity:0;pointer-events:none;transition:.3s;z-index:4}.veil.open{opacity:1;pointer-events:auto}
+.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}
+.kpi div{background:var(--paper);border-radius:14px;padding:12px 14px}.kpi b{font:800 28px 'Bricolage Grotesque';display:block;line-height:1.1}.kpi small{color:var(--mute)}
+.chart{width:100%;height:120px;display:block}
+.tabs{display:flex;gap:6px;margin:10px 0}.tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 14px}.tabs button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.brk{margin-top:18px}.brk h3{font-size:16px;margin-bottom:8px}
+.br{display:grid;grid-template-columns:90px 1fr 30px;gap:10px;align-items:center;font-size:14px;margin:5px 0}
+.br i{display:block;height:8px;border-radius:9px;background:var(--sig)}.br span:last-child{text-align:right;color:var(--mute)}
+.x{float:right;border:0;background:var(--paper);width:38px;height:38px;border-radius:50%;font-size:20px}
+.danger{color:#C21D4B;background:none;border:1px solid #F3C1D0;border-radius:10px;padding:8px 14px;margin-top:22px}
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,40px);background:var(--ink);color:#fff;padding:10px 20px;border-radius:12px;opacity:0;transition:.25s;z-index:9}
+#toast.show{transform:translate(-50%,0);opacity:1}
+@media(max-width:640px){.result{grid-template-columns:1fr}.bar{flex-direction:column}.stats{display:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+<div class="wrap">
+<header><div class="brand"><svg width="30" height="30" viewBox="0 0 32 32"><rect width="32" height="32" rx="9" fill="#15123B"/><path d="M9 20l5-8 4 5 5-9" stroke="#FF5A87" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Linkforge</div>
+<div class="stats"><span><b id="tl">0</b> links forged</span><span><b id="tc">0</b> clicks served</span></div></header>
+
+<section class="hero">
+<h1>Forge a short link. Watch it work.</h1>
+<p>Paste any address. Add a password, an expiry date or a click limit if you need one, then see who opens it and from where.</p>
+<form class="bar" id="f"><input id="url" type="text" inputmode="url" placeholder="Paste a long link" aria-label="Long link" autocomplete="off" required><button class="go" id="go">Shorten link</button></form>
+<div class="opts" role="group" aria-label="Link options">
+<button class="chip" data-o="alias" aria-pressed="false">Custom name</button>
+<button class="chip" data-o="exp" aria-pressed="false">Expires</button>
+<button class="chip" data-o="max" aria-pressed="false">Click limit</button>
+<button class="chip" data-o="pw" aria-pressed="false">Password</button></div>
+<div class="fields" id="fields" hidden>
+<label data-f="alias" hidden>Custom name<input id="alias" maxlength="32" placeholder="my-launch"></label>
+<label data-f="exp" hidden>Expires after (minutes)<input id="exp" type="number" min="1" placeholder="60"></label>
+<label data-f="max" hidden>Stop after (visits)<input id="max" type="number" min="1" placeholder="100"></label>
+<label data-f="pw" hidden>Password<input id="pw" type="text" maxlength="64" placeholder="Visitors must enter this"></label></div>
+<div class="hint" id="hint" role="status"></div>
+<div class="result" id="res" hidden>
+<div><div class="code" id="code" aria-live="polite"></div>
+<div class="row"><button class="btn solid" id="copy">Copy link</button><button class="btn" id="open">View analytics</button></div></div>
+<div class="qr"><img id="qr" alt="QR code for the short link"></div></div>
+</section>
+
+<div class="live"><i class="dot"></i><span id="evs">Waiting for the first click</span></div>
+
+<h2>Your links</h2>
+<div class="list" id="list"></div>
+</div>
+
+<div class="veil" id="veil"></div>
+<aside id="dr" aria-label="Link analytics"></aside>
+<div id="toast" role="status"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let mem={};
+const db={get(){try{return JSON.parse(localStorage.getItem('lf')||'{}')}catch{return mem}},set(v){mem=v;try{localStorage.setItem('lf',JSON.stringify(v))}catch{}}};
+const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2200)};
+async function api(p,o={}){const r=await fetch(p,{...o,headers:{'Content-Type':'application/json',...(o.headers||{})}});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.detail||'Something went wrong. Try again.');return j}
+const A='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+function roll(el,host,text){const show=t=>el.innerHTML=`<span>${esc(host)}/</span>${esc(t)}`;
+ if(matchMedia('(prefers-reduced-motion:reduce)').matches)return show(text);let i=0;
+ const t=setInterval(()=>{show(text.slice(0,i)+[...text.slice(i)].map(()=>A[Math.random()*62|0]).join(''));if(++i>text.length){clearInterval(t);show(text)}},65)}
+const ago=t=>{const s=Date.now()/1e3-t;return s<60?'just now':s<3600?Math.floor(s/60)+' min ago':s<86400?Math.floor(s/3600)+' h ago':Math.floor(s/86400)+' d ago'};
+
+// option chips
+document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{
+ const on=c.getAttribute('aria-pressed')!=='true';c.setAttribute('aria-pressed',on);
+ const lab=document.querySelector(`[data-f=${c.dataset.o}]`);lab.hidden=!on;if(on)lab.querySelector('input').focus();else lab.querySelector('input').value='';
+ $('#fields').hidden=![...document.querySelectorAll('[data-f]')].some(l=>!l.hidden)});
+// alias availability (Bloom filter on the server answers most of these instantly)
+let at;$('#alias').oninput=e=>{clearTimeout(at);const v=e.target.value.trim(),h=$('#hint');if(v.length<3){h.textContent='';return}
+ at=setTimeout(async()=>{try{const r=await api('/api/available/'+encodeURIComponent(v));h.className='hint '+(r.available?'ok':'bad');h.textContent=r.available?`${v} is available`:`${v} is taken`}catch{}},250)};
+
+let cur=null;
+$('#f').onsubmit=async e=>{e.preventDefault();const b=$('#go');b.disabled=true;b.textContent='Forging…';$('#hint').textContent='';
+ const n=id=>$(id).value.trim()||null,num=id=>$(id).value?+$(id).value:null;
+ try{const r=await api('/api/links',{method:'POST',body:JSON.stringify({url:$('#url').value,alias:n('#alias'),expires_in:num('#exp'),max_clicks:num('#max'),password:n('#pw')})});
+  cur=r;const s=db.get();s[r.code]=r.token;db.set(s);
+  $('#res').hidden=false;roll($('#code'),new URL(r.short).host,r.code);$('#qr').src=`/api/qr/${encodeURIComponent(r.code)}.svg`;
+  $('#hint').className='hint ok';$('#hint').textContent='Link ready. Anyone can open it right now.';loadLinks()}
+ catch(err){$('#hint').className='hint bad';$('#hint').textContent=err.message}
+ b.disabled=false;b.textContent='Shorten link'};
+$('#copy').onclick=async()=>{try{await navigator.clipboard.writeText(cur.short);toast('Link copied')}catch{toast('Copy failed. Select the link and copy it manually.')}};
+$('#open').onclick=()=>openDetail(cur.code);
+
+async function loadLinks(){const s=db.get(),codes=Object.keys(s),L=$('#list');
+ if(!codes.length){L.innerHTML='<div class="empty">Links you create in this browser show up here with their click counts.</div>';return}
+ try{const rows=await api('/api/links/batch',{method:'POST',body:JSON.stringify(codes.map(c=>({code:c,token:s[c]})))});
+  rows.filter(r=>r.gone).forEach(r=>delete s[r.code]);db.set(s);
+  const live=rows.filter(r=>!r.gone).sort((a,b)=>b.created-a.created);
+  L.innerHTML=live.length?live.map(r=>`<button class="link" data-c="${esc(r.code)}"><div><div class="s">${esc(new URL(r.short).host)}/${esc(r.code)}</div><div class="u">${esc(r.url)}</div>
+   <div style="margin-top:6px">${r.protected?'<span class="tag">Password</span>':''}${r.expires_at?`<span class="tag">${r.expires_at*1e3<Date.now()?'Expired':'Expires '+new Date(r.expires_at*1e3).toLocaleString()}</span>`:''}${r.max_clicks?`<span class="tag">Limit ${r.max_clicks}</span>`:''}<span class="tag">${ago(r.created)}</span></div></div>
+   <div class="n">${r.clicks}<small>clicks</small></div></button>`).join(''):'<div class="empty">No links yet. Paste one above to get started.</div>';
+  L.querySelectorAll('.link').forEach(b=>b.onclick=()=>openDetail(b.dataset.c))}catch(e){L.innerHTML='<div class="empty">Couldn\'t load your links. Refresh to try again.</div>'}}
+
+const bars=(t,rows)=>`<div class="brk"><h3>${t}</h3>${rows.length?rows.map(([k,v])=>{const m=rows[0][1];return`<div class="br"><span>${esc(k)}</span><i style="width:${Math.max(6,v/m*100)}%"></i><span>${v}</span></div>`}).join(''):'<div style="color:var(--mute);font-size:14px">No clicks yet</div>'}</div>`;
+function chart(vals,labels){const W=460,H=120,m=Math.max(...vals,1),w=W/vals.length;
+ return`<svg class="chart" viewBox="0 0 ${W} ${H+18}" role="img" aria-label="Clicks over time">${vals.map((v,i)=>{const h=v/m*H;return`<rect x="${i*w+2}" y="${H-h}" width="${w-4}" height="${Math.max(h,2)}" rx="3" fill="${v?'#FF5A87':'#DAD4F5'}"><title>${labels[i]}: ${v}</title></rect>`}).join('')}<text x="0" y="${H+14}" font-size="11" fill="#6B678F">${labels[0]}</text><text x="${W}" y="${H+14}" font-size="11" fill="#6B678F" text-anchor="end">${labels.at(-1)}</text></svg>`}
+let mode='hourly',dc=null,dt=null;
+async function openDetail(code){dc=code;dt=db.get()[code];$('#dr').classList.add('open');$('#veil').classList.add('open');$('#dr').innerHTML='<p>Loading…</p>';await drawDetail()}
+async function drawDetail(){try{const s=await api(`/api/links/${encodeURIComponent(dc)}/stats`,{headers:{'X-Owner-Token':dt}});
+ const lab=mode==='hourly'?Array.from({length:24},(_,i)=>i===23?'now':`${23-i}h ago`):['6d ago','','','','','','today'];
+ $('#dr').innerHTML=`<button class="x" id="cx" aria-label="Close">×</button><h2 style="margin-top:0;font-size:26px;word-break:break-all">${esc(s.code)}</h2>
+ <div style="color:var(--mute);word-break:break-all;font-size:14px">${esc(s.url)}</div>
+ <div class="kpi"><div><b>${s.clicks}</b><small>Total clicks</small></div><div><b>${s.unique}</b><small>Unique visitors</small></div><div><b>${s.hourly.reduce((a,b)=>a+b)}</b><small>Last 24 hours</small></div></div>
+ <div class="tabs"><button data-m="hourly" aria-pressed="${mode==='hourly'}">24 hours</button><button data-m="daily" aria-pressed="${mode==='daily'}">7 days</button></div>
+ ${chart(s[mode],lab)}${bars('Devices',s.devices)}${bars('Browsers',s.browsers)}${bars('Operating systems',s.os)}${bars('Where clicks came from',s.referrers)}
+ <div class="row" style="margin-top:20px"><button class="btn solid" id="cc" style="color:#04261D">Copy link</button><button class="danger" id="dl">Delete link</button></div>`;
+ $('#cx').onclick=close;$('#cc').onclick=async()=>{await navigator.clipboard.writeText(s.short);toast('Link copied')};
+ $('#dr').querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{mode=b.dataset.m;drawDetail()});
+ $('#dl').onclick=async()=>{if(!confirm('Delete this link? Anyone who opens it will see "Link not found".'))return;
+  await api('/api/links/'+encodeURIComponent(dc),{method:'DELETE',headers:{'X-Owner-Token':dt}});const d=db.get();delete d[dc];db.set(d);close();toast('Link deleted');loadLinks()}}
+ catch(e){$('#dr').innerHTML=`<button class="x" id="cx" aria-label="Close">×</button><p>${esc(e.message)}</p>`;$('#cx').onclick=close}}
+function close(){$('#dr').classList.remove('open');$('#veil').classList.remove('open')}
+$('#veil').onclick=close;document.addEventListener('keydown',e=>e.key==='Escape'&&close());
+
+async function tick(){try{const f=await api('/api/feed');$('#tl').textContent=f.links.toLocaleString();$('#tc').textContent=f.clicks.toLocaleString();
+ if(f.events.length)$('#evs').innerHTML=f.events.slice(0,4).map(e=>`<span class="ev">${esc(e.c)} opened on ${esc(e.d)} · ${esc(e.b)}, ${ago(e.t)}</span>`).join(' ')}catch{}}
+loadLinks();tick();setInterval(tick,3000);setInterval(()=>{if(!$('#dr').classList.contains('open'))loadLinks()},8000);
+</script></body></html>

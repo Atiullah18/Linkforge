@@ -1,0 +1,16 @@
+services:
+  web:
+    build: .
+    ports: ["8000:8000"]
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      MONGO_URL: mongodb://mongo:27017
+      BASE_URL: http://localhost:8000
+    depends_on: [redis, mongo]
+  redis:
+    image: redis:7-alpine
+  mongo:
+    image: mongo:7
+    volumes: [mongo_data:/data/db]
+volumes:
+  mongo_data:
